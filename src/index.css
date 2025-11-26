@@ -4,8 +4,11 @@
 
 /* Global Base Styles */
 body {
-  background-color: #1e1e1e; /* VS Code Dark */
+  /* Changed from #1e1e1e to #0b0c10 to match the App.jsx gradient start */
+  background-color: #0b0c10; 
   color: white;
   margin: 0;
-  font-family: monospace; /* Sets the vibe immediately */
+  font-family: monospace;
+  /* Optional: Prevents horizontal scrollbars if elements get too wide */
+  overflow-x: hidden; 
 }
