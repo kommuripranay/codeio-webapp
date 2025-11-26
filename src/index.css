@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global Base Styles */
+body {
+  background-color: #1e1e1e; /* VS Code Dark */
+  color: white;
+  margin: 0;
+  font-family: monospace; /* Sets the vibe immediately */
+}
