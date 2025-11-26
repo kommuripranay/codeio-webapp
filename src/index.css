@@ -2,13 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Global Base Styles */
 body {
-  /* Changed from #1e1e1e to #0b0c10 to match the App.jsx gradient start */
+  /* Crucial: Matches the top of your App.jsx gradient */
   background-color: #0b0c10; 
   color: white;
   margin: 0;
   font-family: monospace;
-  /* Optional: Prevents horizontal scrollbars if elements get too wide */
-  overflow-x: hidden; 
+  overflow-x: hidden;
 }

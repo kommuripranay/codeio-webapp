@@ -1,102 +1,156 @@
 import { useRef, useEffect } from 'react';
 
 const LetterGlitch = ({
-  // Using pure white with varying opacity for depth
-  glitchColors = ['#FFFFFF', '#AAAAAA', '#555555'],
+  glitchColors = ['#B8B8FF'],
   glitchSpeed = 50,
-  updateCount = 300, // Number of characters changing per frame
+  centerVignette = false,
+  outerVignette = false,
+  smooth = true,
   characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$&*()-_+=/[]{};:<>.,0123456789'
 }) => {
   const canvasRef = useRef(null);
-  const containerRef = useRef(null);
   const animationRef = useRef(null);
-  const grid = useRef([]);
+  const letters = useRef([]);
+  const grid = useRef({ columns: 0, rows: 0 });
   const context = useRef(null);
   const lastGlitchTime = useRef(Date.now());
 
-  const fontSize = 16; 
-  const charWidth = 10; // Fixed width for cleaner grid
+  const lettersAndSymbols = Array.from(characters);
 
-  const getRandomChar = () => characters[Math.floor(Math.random() * characters.length)];
+  const fontSize = 16;
+  const charWidth = 10;
+  const charHeight = 20;
+
+  const getRandomChar = () => lettersAndSymbols[Math.floor(Math.random() * lettersAndSymbols.length)];
   const getRandomColor = () => glitchColors[Math.floor(Math.random() * glitchColors.length)];
 
-  // Create the grid state
-  const setupGrid = (cols, rows) => {
-    grid.current = [];
-    for (let i = 0; i < cols * rows; i++) {
-      grid.current.push({
-        char: getRandomChar(),
-        color: getRandomColor()
-      });
-    }
+  const hexToRgb = hex => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null;
+  };
+
+  const interpolateColor = (start, end, factor) => {
+    const result = {
+      r: Math.round(start.r + (end.r - start.r) * factor),
+      g: Math.round(start.g + (end.g - start.g) * factor),
+      b: Math.round(start.b + (end.b - start.b) * factor)
+    };
+    return `rgb(${result.r}, ${result.g}, ${result.b})`;
+  };
+
+  const calculateGrid = (width, height) => {
+    const columns = Math.ceil(width / charWidth);
+    const rows = Math.ceil(height / charHeight);
+    return { columns, rows };
+  };
+
+  const initializeLetters = (columns, rows) => {
+    grid.current = { columns, rows };
+    const totalLetters = columns * rows;
+    letters.current = Array.from({ length: totalLetters }, () => ({
+      char: getRandomChar(),
+      color: getRandomColor(),
+      targetColor: getRandomColor(),
+      colorProgress: 1
+    }));
   };
 
   const resizeCanvas = () => {
-    if (!containerRef.current || !canvasRef.current) return;
-    const parent = containerRef.current.getBoundingClientRect();
     const canvas = canvasRef.current;
+    if (!canvas) return;
+    const parent = canvas.parentElement;
+
     const dpr = window.devicePixelRatio || 1;
     
-    // Force canvas to match parent exactly
-    canvas.width = parent.width * dpr;
-    canvas.height = parent.height * dpr;
+    // UPDATED LOGIC: Measure Parent, fallback to Window
+    // This allows the canvas to be taller than the screen (e.g., 170vh)
+    const rect = parent ? parent.getBoundingClientRect() : { width: window.innerWidth, height: window.innerHeight };
+    const width = rect.width || window.innerWidth;
+    const height = rect.height || window.innerHeight;
+
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+
     canvas.style.width = '100%';
     canvas.style.height = '100%';
 
-    if (context.current) context.current.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (context.current) {
+      context.current.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
 
-    // Calculate grid size based on actual pixels
-    const cols = Math.ceil(parent.width / charWidth);
-    const rows = Math.ceil(parent.height / fontSize);
-    
-    // Build the grid
-    setupGrid(cols, rows);
-    draw(); 
+    const { columns, rows } = calculateGrid(width, height);
+    initializeLetters(columns, rows);
+
+    drawLetters();
   };
 
-  const draw = () => {
-    if (!context.current || !canvasRef.current || !containerRef.current) return;
+  const drawLetters = () => {
+    if (!context.current || letters.current.length === 0) return;
     const ctx = context.current;
-    const parent = containerRef.current.getBoundingClientRect();
+    const width = canvasRef.current.width / (window.devicePixelRatio || 1);
+    const height = canvasRef.current.height / (window.devicePixelRatio || 1);
     
-    // Clear screen
-    ctx.clearRect(0, 0, parent.width, parent.height);
-    
+    ctx.clearRect(0, 0, width, height);
     ctx.font = `${fontSize}px monospace`;
-    ctx.textAlign = 'start';
     ctx.textBaseline = 'top';
 
-    const cols = Math.ceil(parent.width / charWidth);
-
-    // Render the grid
-    grid.current.forEach((cell, i) => {
-      const x = (i % cols) * charWidth;
-      const y = Math.floor(i / cols) * fontSize;
-      
-      ctx.fillStyle = cell.color;
-      ctx.fillText(cell.char, x, y);
+    letters.current.forEach((letter, index) => {
+      const x = (index % grid.current.columns) * charWidth;
+      const y = Math.floor(index / grid.current.columns) * charHeight;
+      ctx.fillStyle = letter.color;
+      ctx.fillText(letter.char, x, y);
     });
   };
 
-  const update = () => {
-    if (grid.current.length === 0) return;
-    // Update a random subset of characters
+  const updateLetters = () => {
+    if (!letters.current || letters.current.length === 0) return;
+    const updateCount = Math.max(1, Math.floor(letters.current.length * 0.05));
+
     for (let i = 0; i < updateCount; i++) {
-      const index = Math.floor(Math.random() * grid.current.length);
-      if (grid.current[index]) {
-        grid.current[index].char = getRandomChar();
-        grid.current[index].color = getRandomColor();
+      const index = Math.floor(Math.random() * letters.current.length);
+      if (!letters.current[index]) continue;
+
+      letters.current[index].char = getRandomChar();
+      letters.current[index].targetColor = getRandomColor();
+
+      if (!smooth) {
+        letters.current[index].color = letters.current[index].targetColor;
+        letters.current[index].colorProgress = 1;
+      } else {
+        letters.current[index].colorProgress = 0;
       }
     }
+  };
+
+  const handleSmoothTransitions = () => {
+    let needsRedraw = false;
+    letters.current.forEach(letter => {
+      if (letter.colorProgress < 1) {
+        letter.colorProgress += 0.05;
+        if (letter.colorProgress > 1) letter.colorProgress = 1;
+        const startRgb = hexToRgb(letter.color);
+        const endRgb = hexToRgb(letter.targetColor);
+        if (startRgb && endRgb) {
+          letter.color = interpolateColor(startRgb, endRgb, letter.colorProgress);
+          needsRedraw = true;
+        }
+      }
+    });
+    if (needsRedraw) drawLetters();
   };
 
   const animate = () => {
     const now = Date.now();
     if (now - lastGlitchTime.current >= glitchSpeed) {
-      update(); 
-      draw();
+      updateLetters();
+      drawLetters();
       lastGlitchTime.current = now;
     }
+    if (smooth) handleSmoothTransitions();
     animationRef.current = requestAnimationFrame(animate);
   };
 
@@ -105,24 +159,24 @@ const LetterGlitch = ({
     if (!canvas) return;
     context.current = canvas.getContext('2d');
     
-    // Initial setup with delay to catch layout stability
-    setTimeout(() => {
-        resizeCanvas();
-        animate();
-    }, 50);
+    // Initial resize
+    resizeCanvas();
+    animate();
 
-    const handleResize = () => resizeCanvas();
+    const handleResize = () => {
+        resizeCanvas();
+    };
+
     window.addEventListener('resize', handleResize);
-    
     return () => {
       cancelAnimationFrame(animationRef.current);
       window.removeEventListener('resize', handleResize);
     };
-  }, [glitchSpeed]);
+  }, [glitchSpeed, smooth, glitchColors]);
 
   return (
-    <div ref={containerRef} className="absolute inset-0 w-full h-full overflow-hidden">
-      <canvas ref={canvasRef} className="block" />
+    <div className="relative w-full h-full bg-transparent overflow-hidden">
+      <canvas ref={canvasRef} className="block w-full h-full" />
     </div>
   );
 };
