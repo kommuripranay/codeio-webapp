@@ -10,7 +10,7 @@ const COLORS = {
 export default function App() {
   return (
     <div 
-      className="w-full min-h-[400vh] text-white relative"
+      className="w-full min-h-[400vh] text-white relative "
       style={{
         // THE SHIFTED GRADIENT STACK (Moved up another 10vh)
         // 0% - 70vh:   Hold Obsidian (Starts fading while hero is still largely visible)
@@ -28,13 +28,15 @@ export default function App() {
       }}
     >
       
+
+      
       {/* --- LAYER 1: TALL GLITCH TEXTURE --- */}
       {/* Adjusted height to 160vh to match the new gradient end point */}
-      <div className="absolute top-0 left-0 w-full h-[160vh] z-0 opacity-20 mix-blend-lighten pointer-events-none">
+      <div className="absolute top-0 left-0 w-full h-[160vh] z-0 opacity-100 mix-blend-lighten pointer-events-none">
           <LetterGlitch
             glitchSpeed={120} 
             smooth={true}
-            glitchColors={[COLORS.ultraPale]} 
+            glitchColors={['#E2E2FF30','#E2E2FF40','#E2E2FF40','#E2E2FF50','#E2E2FF50','#E2E2FF50']} 
           />
           
           <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-transparent to-transparent"></div>
