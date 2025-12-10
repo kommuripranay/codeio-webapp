@@ -23,3 +23,12 @@ body {
   background: #333;
   border-radius: 3px;
 }
+
+.font-tech {
+  font-family: "Bitcount Grid Double", system-ui;
+  font-optical-sizing: auto;
+  font-variation-settings: "CRSV" 0.5; /* Adjusts the cross shape visibility */
+  font-weight: 400;
+}
+
+/* ... rest of your CSS ... */

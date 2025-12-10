@@ -7,19 +7,17 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        // Main text font
         sans: ['Inter', 'sans-serif'],
-        // Futuristic accent font (Orbitron is a free alternative to Bitcount for this demo)
-        tech: ['Orbitron', 'sans-serif'], 
+        // UPDATED: Now points to the correct Google Font name
+        tech: ['"Bitcount Grid Double"', 'system-ui', 'sans-serif'], 
       },
       colors: {
-        // A flat, deep futuristic palette
         cyber: {
           black: '#0a0a0a',
           dark: '#121212',
           gray: '#2a2a2a',
           text: '#e5e5e5',
-          accent: '#ffffff', // Pure white for high contrast "less is more"
+          accent: '#ffffff', 
         }
       }
     },
