@@ -2,17 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  background-color: #0a0a0a;
-  color: #e5e5e5;
+@layer base {
+  body {
+    background-color: #0a0a0a;
+    color: #e5e5e5;
+  }
 }
 
-body {
-  margin: 0;
-  overflow-x: hidden; /* Prevents scroll when sidebar is open */
-}
-
-/* Custom scrollbar for a sleeker look */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -20,15 +16,51 @@ body {
   background: #0a0a0a;
 }
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: #2a2a2a;
   border-radius: 3px;
 }
 
-.font-tech {
-  font-family: "Bitcount Grid Double", system-ui;
-  font-optical-sizing: auto;
-  font-variation-settings: "CRSV" 0.5; /* Adjusts the cross shape visibility */
-  font-weight: 400;
+/* OCCASIONAL RANDOM GLITCH 
+  Duration: 2.5s. 
+  It stays clean for most of the time (0% to 90%), 
+  then quickly snaps (glitches) at the end.
+*/
+@keyframes glitch-occasional {
+  0% {
+    text-shadow: 0 0 transparent;
+    transform: translate(0);
+  }
+  92% {
+    text-shadow: 0 0 transparent;
+    transform: translate(0);
+  }
+  93% {
+    /* Quick Pink Flash */
+    text-shadow: -2px 0 #ff00ff, 1px 0 #ffffff;
+    transform: translate(-1px, 1px);
+  }
+  94% {
+    text-shadow: 0 0 transparent;
+    transform: translate(0);
+  }
+  96% {
+    /* Quick Indigo Flash */
+    text-shadow: 2px 0 #818cf8, -2px 0 #ff00ff;
+    transform: translate(1px, -1px);
+  }
+  100% {
+    text-shadow: 0 0 transparent;
+    transform: translate(0);
+  }
 }
 
-/* ... rest of your CSS ... */
+.glitch-hover {
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+  font-weight: 400; /* Keeping it thin/normal */
+}
+
+.glitch-hover:hover {
+  color: #818cf8; /* Turns Indigo-Violet on hover */
+  /* Runs the glitch loop infinitely while hovering */
+  animation: glitch-occasional 2.5s infinite; 
+}
